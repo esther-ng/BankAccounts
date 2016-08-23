@@ -1,4 +1,7 @@
 require_relative 'owner'
+require 'money'
+
+I18n.enforce_available_locales = false
 
 module Bank
   class Account
@@ -9,30 +12,32 @@ module Bank
         raise ArgumentError.new("Cannot open a new account with a negative balance.")
       end
       @owner = owner
-      @balance = balance
+      @balance = Money.new(balance * 100, "USD")
       id = Random.new
       @id = id.rand(100000...999999)
     end
 
     def withdraw(amount)
+      amount = Money.new( amount * 100, "USD")
       unless (@balance - amount) >= 0
         raise ArgumentError.new("Cannot make a withdrawal that will result in a negative balance.")
       end
       @balance -= amount
-      return @balance
+      return @balance.format
     end
 
     def deposit(amount)
+      amount = Money.new( amount * 100, "USD")
       @balance += amount
-      return @balance
+      return @balance.format
     end
 
-    def to_cents(num)
-      return num * 100
-    end
-
-    def to_dollar_and_cents(num)
-      return num / 100
-    end
+    # def to_cents(num)
+    #   return num * 100
+    # end
+    #
+    # def to_dollar_and_cents(num)
+    #   return num / 100
+    # end
   end
 end
