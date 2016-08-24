@@ -1,6 +1,7 @@
 require_relative 'owner'
 require 'money'
-
+# the find method should use the all method
+# make sure to reference the csv file in the support folder
 I18n.enforce_available_locales = false
 
 module Bank
