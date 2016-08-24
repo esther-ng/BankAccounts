@@ -3,40 +3,35 @@ require 'money'
 require 'csv'
 # the find method should use the all method
 # make sure to reference the csv file in the support folder
-I18n.enforce_available_locales = false
+# csv balances are in cents
+
+I18n.enforce_available_locales = false # this fixes an error in the money gem
 
 module Bank
   class Account
     attr_accessor :id, :balance, :owner
 
-    # @@accounts = []
-
     def initialize(id, balance, opendate, owner = nil)
       unless balance >= 0
         raise ArgumentError.new("Cannot open a new account with a negative balance.")
       end
-      @owner = owner
       @balance = Money.new(balance, "USD")
       @id = id
       @opendate = opendate
+      @owner = owner
     end
 
-    # def self.all
-    #   return @@accounts
-    # end import_accounts(filename)
-# this both uploads the accounts from the csv file and returns it
+# this both uploads the accounts from the csv file and returns an array of account objects created from the file data
     def self.all
       accounts = []
       CSV.read('support/accounts.csv').each do |line|
         balance = Money.new(line[1], "USD")
         accounts << self.new(line[0], balance, line[2])
       end
-      # CSV.read('support/account_owners.csv').each do |line|
-      #   (self.find(line[0])).owner = Owner.find(line[1])
-      # end
       accounts
     end
 
+# accepts an id and returns the matching account object
     def self.find(id)
       accounts = self.all
       accounts.each do |account|
@@ -46,19 +41,17 @@ module Bank
       end
     end
 
-# add owner from csv to instance of account THIS WORKS!
+# use csv file to add owners to respective accounts and return a new array of account objects with owners
     def self.all_with_owners
-      self.all
-      accounts_with_names = []
+      accounts_with_owners = []
       CSV.read('support/account_owners.csv').each do |line|
         account = self.find(line[0])
         owner = Owner.find(line[1])
         account.owner = owner
-        accounts_with_names << account
+        accounts_with_owners << account
       end
-      accounts_with_names
+      accounts_with_owners
     end
-
 
     def withdraw(amount)
       amount = Money.new( amount , "USD")
@@ -74,21 +67,5 @@ module Bank
       @balance += amount
       return @balance.format
     end
-
-    # def to_cents(num)
-    #   return num * 100
-    # end
-    #
-    # def to_dollar_and_cents(num)
-    #   return num / 100
-    # end
   end
 end
-
-#
-#
-# def add_owner
-#   CSV.read('support/account_owners.csv').each do |line|
-#     (Bank::Account.find(line[0])).owner = accounts.find(line[1])
-#   end
-# end
