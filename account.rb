@@ -1,21 +1,25 @@
 require_relative 'owner'
-require 'money'
+# require 'money'
 require 'csv'
 # the find method should use the all method
 # make sure to reference the csv file in the support folder
 # csv balances are in cents
 
-I18n.enforce_available_locales = false # this fixes an error in the money gem
+# I18n.enforce_available_locales = false # this fixes an error in the money gem
 
 module Bank
   class Account
-    attr_accessor :id, :balance, :owner
+    attr_accessor :id, :balance, :owner, :minimum_balance
 
-    def initialize(id, balance, opendate, owner = nil)
-      unless balance >= 0
-        raise ArgumentError.new("Cannot open a new account with a negative balance.")
+    LOW_INITIAL_BALANCE = "Cannot open a new account with less than the minimum balance."
+    WITHDRAWAL_WARNING = "Cannot make a withdrawal that will result in dropping below the minimum balance."
+
+    def initialize(id, balance, opendate, minimum_balance = 0)
+      @minimum_balance = minimum_balance
+      unless balance.to_i >= @minimum_balance
+        raise ArgumentError.new(LOW_INITIAL_BALANCE)
       end
-      @balance = Money.new(balance, "USD")
+      @balance = balance.to_i
       @id = id
       @opendate = opendate
       @owner = owner
@@ -25,7 +29,7 @@ module Bank
     def self.all
       accounts = []
       CSV.read('support/accounts.csv').each do |line|
-        balance = Money.new(line[1], "USD")
+        balance = line[1]
         accounts << self.new(line[0], balance, line[2])
       end
       accounts
@@ -53,19 +57,18 @@ module Bank
       accounts_with_owners
     end
 
-    def withdraw(amount)
-      amount = Money.new( amount , "USD")
-      unless (@balance - amount) >= 0
-        raise ArgumentError.new("Cannot make a withdrawal that will result in a negative balance.")
+    def withdraw(amount, fee = 0)
+      if (@balance - amount - fee) < @minimum_balance
+        puts WITHDRAWAL_WARNING
+      else
+        @balance -= (amount + fee)
       end
-      @balance -= amount
-      return @balance.format
+      return @balance
     end
 
     def deposit(amount)
-      amount = Money.new( amount , "USD")
       @balance += amount
-      return @balance.format
+      return @balance
     end
   end
 end
