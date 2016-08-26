@@ -1,15 +1,14 @@
 require_relative 'owner'
-# require 'money'
 require 'csv'
-# the find method should use the all method
-# make sure to reference the csv file in the support folder
-# csv balances are in cents
 
+# require 'money'
 # I18n.enforce_available_locales = false # this fixes an error in the money gem
+
+# csv balances are in cents
 
 module Bank
   class Account
-    attr_accessor :id, :balance, :owner, :minimum_balance
+    attr_accessor :id, :balance, :owner
 
     LOW_INITIAL_BALANCE = "Cannot open a new account with less than the minimum balance."
     WITHDRAWAL_WARNING = "Cannot make a withdrawal that will result in dropping below the minimum balance."
@@ -32,12 +31,16 @@ module Bank
         balance = line[1]
         accounts << self.new(line[0], balance, line[2])
       end
-      accounts
+      return accounts
     end
 
 # accepts an id and returns the matching account object
-    def self.find(id)
-      accounts = self.all
+    def self.find(id, owner = false)
+      if owner == true
+        accounts = self.all_with_owners
+      else
+        accounts = self.all
+      end
       accounts.each do |account|
         if account.id == id
           return account
@@ -50,20 +53,31 @@ module Bank
       accounts_with_owners = []
       CSV.read('support/account_owners.csv').each do |line|
         account = self.find(line[0])
-        owner = Owner.find(line[1])
-        account.owner = owner
+        account.owner = Owner.find(line[1])
         accounts_with_owners << account
       end
       accounts_with_owners
     end
 
     def withdraw(amount, fee = 0)
-      if (@balance - amount - fee) < self.class::MINIMUM_BALANCE
-        puts WITHDRAWAL_WARNING
+      if not_allowed?(amount, fee)
+        puts self.class::WITHDRAWAL_WARNING
       else
-        @balance -= (amount + fee)
+        if_allowed(amount, fee)
       end
       return @balance
+    end
+
+    def remaining_balance(amount, fee = 0)
+      return @balance - amount - fee
+    end
+
+    def not_allowed?(amount, fee)
+      remaining_balance(amount, fee) < self.class::MINIMUM_BALANCE
+    end
+
+    def if_allowed(amount, fee)
+      @balance = remaining_balance(amount, fee)
     end
 
     def deposit(amount)

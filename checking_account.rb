@@ -8,6 +8,7 @@ class CheckingAccount < Bank::Account
   def initialize(id, balance, opendate)
     super
     @free_checks = 3
+    @overdraft = -1000
   end
 
   def withdraw(amount, fee = 100)
@@ -21,10 +22,10 @@ class CheckingAccount < Bank::Account
       fee = 0
       @free_checks -= 1
     end
-    if (@balance - amount - fee) < -10
+    if remaining_balance(amount, fee) < @overdraft
       puts WITHDRAWAL_WARNING
     else
-      @balance -= (amount + fee)
+      @balance = remaining_balance(amount, fee)
     end
     return @balance
   end
