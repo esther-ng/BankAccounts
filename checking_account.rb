@@ -2,13 +2,13 @@ require_relative 'account'
 
 class CheckingAccount < Bank::Account
   MINIMUM_BALANCE = 0
+  OVERDRAFT = -1000
 
   attr_accessor :free_checks
 
   def initialize(id, balance, opendate)
     super
     @free_checks = 3
-    @overdraft = -1000
   end
 
   def withdraw(amount, fee = 100)
@@ -22,7 +22,7 @@ class CheckingAccount < Bank::Account
       fee = 0
       @free_checks -= 1
     end
-    if remaining_balance(amount, fee) < @overdraft
+    if remaining_balance(amount, fee) < OVERDRAFT
       puts WITHDRAWAL_WARNING
     else
       @balance = remaining_balance(amount, fee)

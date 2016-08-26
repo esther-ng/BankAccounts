@@ -3,6 +3,10 @@ require_relative 'account'
 class MoneyMarketAccount < Bank::Account
   MINIMUM_BALANCE = 1000000
   WITHDRAWAL_WARNING = "Sorry, no more transactions allowed for this month."
+  TRANSACTIONS_ALLOWED = 6
+
+  attr_accessor :transactions
+
   def initialize(id, balance, opendate)
     super
       @transactions = 0
@@ -13,13 +17,13 @@ class MoneyMarketAccount < Bank::Account
   end
 
   def not_allowed?(amount, fee)
-    @transactions >= 6
+    @transactions >= TRANSACTIONS_ALLOWED
   end
 
   def if_allowed(amount, fee)
     if remaining_balance(amount, fee) < 1000000
       fee = 10000
-      @transactions = 6
+      @transactions = TRANSACTIONS_ALLOWED
     else
       @transactions += 1
     end
@@ -29,7 +33,7 @@ class MoneyMarketAccount < Bank::Account
   def deposit(amount)
     pre_deposit_balance = @balance
     post_deposit_balance = super(amount)
-    if pre_deposit_balance < MINIMUM_BALANCE && post_deposit_balance >= MINIMUM_BALANCE
+    if pre_deposit_balance < self.class::MINIMUM_BALANCE && post_deposit_balance >= self.class::MINIMUM_BALANCE
       return @balance
     else
       @transactions += 1
