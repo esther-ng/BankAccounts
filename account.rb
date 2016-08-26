@@ -13,10 +13,10 @@ module Bank
 
     LOW_INITIAL_BALANCE = "Cannot open a new account with less than the minimum balance."
     WITHDRAWAL_WARNING = "Cannot make a withdrawal that will result in dropping below the minimum balance."
+    MINIMUM_BALANCE = 0
 
-    def initialize(id, balance, opendate, minimum_balance = 0)
-      @minimum_balance = minimum_balance
-      unless balance.to_i >= @minimum_balance
+    def initialize(id, balance, opendate)
+      unless balance.to_i >= self.class::MINIMUM_BALANCE
         raise ArgumentError.new(LOW_INITIAL_BALANCE)
       end
       @balance = balance.to_i
@@ -58,7 +58,7 @@ module Bank
     end
 
     def withdraw(amount, fee = 0)
-      if (@balance - amount - fee) < @minimum_balance
+      if (@balance - amount - fee) < self.class::MINIMUM_BALANCE
         puts WITHDRAWAL_WARNING
       else
         @balance -= (amount + fee)

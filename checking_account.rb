@@ -1,7 +1,11 @@
 require_relative 'account'
 
 class CheckingAccount < Bank::Account
-  def initialize(id, balance, opendate, minimum_balance = 0)
+  MINIMUM_BALANCE = 0
+
+  attr_accessor :free_checks
+
+  def initialize(id, balance, opendate)
     super
     @free_checks = 3
   end
@@ -11,10 +15,11 @@ class CheckingAccount < Bank::Account
   end
 
   def withdraw_using_check(amount)
-    if @free_checks <= 0
+    if @free_checks < 1
       fee = 200
     else
       fee = 0
+      @free_checks -= 1
     end
     if (@balance - amount - fee) < -10
       puts WITHDRAWAL_WARNING

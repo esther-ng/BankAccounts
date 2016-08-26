@@ -1,10 +1,7 @@
 require_relative 'account'
 
 class SavingsAccount < Bank::Account
-  def initialize(id, balance, opendate, minimum_balance = 1000)
-    super
-    # @withdrawal_fee = 200
-  end
+  MINIMUM_BALANCE = 1000
 
   def withdraw(amount, fee = 200)
     super
